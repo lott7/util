@@ -1,0 +1,7 @@
+# Common patterns are handled by the global gitignore (core.excludesFile).
+# Project-specific ignores for util go here.
+.env
+
+# Markdown docs other than README.md are kept local, not published
+*.md
+!README.md
