@@ -26,9 +26,7 @@ pth_file = SHARED_VENV_SITE_PACKAGES / "lott7_modules.pth"
 existing = set()
 if pth_file.exists():
     existing = {
-        line.strip()
-        for line in pth_file.read_text(encoding="utf-8").splitlines()
-        if line.strip()
+        line.strip() for line in pth_file.read_text(encoding="utf-8").splitlines() if line.strip()
     }
 
 # Create the file or append any missing paths

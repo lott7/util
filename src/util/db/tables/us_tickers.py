@@ -9,10 +9,9 @@ from ..schemas.us_tickers import us_tickers_schema
 class UsTickersTable(BaseTable):
     """Curated NYSE/NASDAQ ticker universe.
 
-    Populated by eodhd_client's periodic ticker-list sync; the `selected`
-    column is a manual-curation flag the user edits directly via SQL to
-    mark which symbols should actually be tracked by the EOD price ingest
-    pipeline. Re-syncing must preserve existing `selected` values.
+    Populated by eodhd_client's periodic ticker-list sync. The `delisted`
+    column records whether EODHD marks the ticker inactive; active rows
+    keep it NULL so the ingest pipeline can treat NULL as "still active".
     """
 
     table_name = "us_tickers"
@@ -28,5 +27,5 @@ class UsTickersTable(BaseTable):
             Column("currency", String(16), nullable=False),
             Column("type", String(64), nullable=False),
             Column("isin", String(32), nullable=True),
-            Column("selected", Boolean, nullable=False, default=False),
+            Column("delisted", Boolean, nullable=True),
         ]

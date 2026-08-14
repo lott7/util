@@ -3,8 +3,7 @@
 # never committed to source control.
 import pandas as pd
 
-from util.db import UsEquitiesTable
-from util.db.connection import get_engine
+from util.db import UsEquitiesTable, get_engine
 
 
 def main() -> None:
@@ -29,8 +28,8 @@ def main() -> None:
     table.upsert(df)
     print("Upsert completed")
 
-    data = table.read(limit=5)
-    print("Read rows:", data)
+    data_df = table.read(limit=5)
+    print("Read rows (DataFrame):", data_df)
 
 
 if __name__ == "__main__":

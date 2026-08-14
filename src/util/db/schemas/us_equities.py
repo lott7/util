@@ -10,6 +10,7 @@ import pandera.pandas as pa
 us_equities_schema = pa.DataFrameSchema(
     {
         "symbol": pa.Column(str, nullable=False, coerce=True),
+        "exchange": pa.Column(str, nullable=False, coerce=True),
         "trade_date": pa.Column("datetime64[ns]", nullable=False, coerce=True),
         "open": pa.Column(float, nullable=False, coerce=True),
         "high": pa.Column(float, nullable=False, coerce=True),

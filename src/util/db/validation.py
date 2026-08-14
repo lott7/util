@@ -46,9 +46,7 @@ def _build_schema(table: Table) -> pa.DataFrameSchema:
         if column.name in AUDIT_COLUMNS:
             continue
         is_nullable = bool(column.nullable)
-        required = (
-            not is_nullable and column.default is None and column.server_default is None
-        )
+        required = not is_nullable and column.default is None and column.server_default is None
         columns[column.name] = pa.Column(
             _pandera_dtype(column.type),
             nullable=is_nullable,

@@ -4,8 +4,8 @@ import pandera.pandas as pa
 
 # Explicit validation schema for the us_tickers table's business columns
 # (no audit_* columns — those are system-managed and never caller-supplied).
-# `selected` is the manual-curation flag: eodhd_client.tickers.sync_tickers
-# preserves existing values across re-syncs instead of overwriting them.
+# `delisted` mirrors EODHD's active/delisted flag: NULL means active,
+# True means inactive/delisted.
 us_tickers_schema = pa.DataFrameSchema(
     {
         "symbol": pa.Column(str, nullable=False, coerce=True),
@@ -15,7 +15,7 @@ us_tickers_schema = pa.DataFrameSchema(
         "currency": pa.Column(str, nullable=False, coerce=True),
         "type": pa.Column(str, nullable=False, coerce=True),
         "isin": pa.Column(str, nullable=True, coerce=True),
-        "selected": pa.Column(bool, nullable=False, coerce=True),
+        "delisted": pa.Column(bool, nullable=True, coerce=True),
     },
     strict=True,
     coerce=True,

@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime as dt
 import getpass
 from collections.abc import Sequence
-from typing import Any
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -32,25 +31,23 @@ class TableType1:
         table: Table,
         primary_keys: Sequence[str],
         create_if_missing: bool = False,
+        chunksize: int | None = None,
         validation_schema: pa.DataFrameSchema | None = None,
     ) -> None:
         self.engine = engine
         self.table = table
         add_audit_columns(self.table)
         self.primary_keys = tuple(primary_keys)
+        self.chunksize = chunksize
         self.validation_schema = validation_schema
         if create_if_missing:
-            self.table.metadata.create_all(
-                self.engine, checkfirst=True, tables=[self.table]
-            )
+            self.table.metadata.create_all(self.engine, checkfirst=True, tables=[self.table])
 
-    def read(self, limit: int | None = None) -> list[dict[str, Any]]:
+    def read(self, limit: int | None = None) -> pd.DataFrame:
         stmt = select(self.table)
         if limit is not None:
             stmt = stmt.limit(limit)
-        with self.engine.connect() as conn:
-            result = conn.execute(stmt)
-            return [dict(row._mapping) for row in result]
+        return pd.read_sql(stmt, self.engine)
 
     def upsert(self, df: pd.DataFrame) -> None:
         """Bulk-upsert a DataFrame of rows into the table.
@@ -69,9 +66,7 @@ class TableType1:
         duplicate_mask = df.duplicated(subset=pk_columns, keep=False)
         if duplicate_mask.any():
             duplicate_keys = (
-                df.loc[duplicate_mask, pk_columns]
-                .drop_duplicates()
-                .to_dict(orient="records")
+                df.loc[duplicate_mask, pk_columns].drop_duplicates().to_dict(orient="records")
             )
             raise ValidationError(
                 f"Duplicate primary key value(s) {duplicate_keys} for table {self.table.name!r} "
@@ -81,16 +76,18 @@ class TableType1:
         user = getpass.getuser()
         now = dt.datetime.now(ZoneInfo("America/New_York")).replace(microsecond=0)
 
-        business_columns = [
-            c for c in self.table.columns if c.name not in AUDIT_COLUMNS
-        ]
+        business_columns = [c for c in self.table.columns if c.name not in AUDIT_COLUMNS]
         update_columns = [c.name for c in business_columns if c.name not in pk_columns]
+        num_columns = len(business_columns)
+        max_by_params = max(1, (2100 // num_columns) - 1)
+        if self.chunksize is None:
+            effective_chunksize = min(1000, max_by_params)
+        else:
+            effective_chunksize = min(max(1, self.chunksize), max_by_params)
 
         # Normalize so every row has the same keys (required for a single
         # batched executemany insert into the staging table).
-        normalized_rows = [
-            {c.name: row.get(c.name) for c in business_columns} for row in rows_list
-        ]
+        normalized_rows = [{c.name: row.get(c.name) for c in business_columns} for row in rows_list]
 
         temp_table_name = f"#upsert_{self.table.name}"
         temp_table = Table(
@@ -102,7 +99,11 @@ class TableType1:
         try:
             with self.engine.begin() as conn:
                 conn.execute(CreateTable(temp_table))
-                conn.execute(insert(temp_table), normalized_rows)
+                for start in range(0, len(normalized_rows), effective_chunksize):
+                    conn.execute(
+                        insert(temp_table),
+                        normalized_rows[start : start + effective_chunksize],
+                    )
                 conn.execute(
                     text(self._merge_sql(temp_table_name, pk_columns, update_columns)),
                     {
@@ -114,9 +115,7 @@ class TableType1:
                 )
                 conn.execute(DropTable(temp_table, if_exists=True))
         except SQLAlchemyError as exc:
-            raise RuntimeError(
-                f"Upsert failed for table {self.table.name!r}: {exc}"
-            ) from exc
+            raise RuntimeError(f"Upsert failed for table {self.table.name!r}: {exc}") from exc
 
     def _qualified_name(self) -> str:
         if self.table.schema:
@@ -140,8 +139,7 @@ class TableType1:
 
         insert_columns = list(pk_columns) + list(update_columns)
         insert_col_list = (
-            ", ".join(f"[{c}]" for c in insert_columns)
-            + ", [audit_created_at], [audit_created_by]"
+            ", ".join(f"[{c}]" for c in insert_columns) + ", [audit_created_at], [audit_created_by]"
         )
         insert_val_list = (
             ", ".join(f"source.[{c}]" for c in insert_columns)
@@ -170,11 +168,12 @@ class TableType2:
         table: Table,
         primary_keys: Sequence[str],
         create_if_missing: bool = False,
+        chunksize: int | None = None,
         validation_schema: pa.DataFrameSchema | None = None,
     ) -> None:
         raise NotImplementedError
 
-    def read(self, limit: int | None = None) -> list[dict[str, Any]]:
+    def read(self, limit: int | None = None) -> pd.DataFrame:
         raise NotImplementedError
 
     def upsert(self, df: pd.DataFrame) -> None:

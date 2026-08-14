@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -14,9 +14,7 @@ from util.env import ENV_PATH  # noqa: F401  (imported for its .env-loading side
 # details (or credentials, if a non-trusted connection is ever needed) are
 # committed to source control. The path itself comes from util/.env's
 # DB_CONNECTION_CONFIG_PATH.
-DEFAULT_CONNECTION_CONFIG_PATH = Path(
-    os.environ.get("DB_CONNECTION_CONFIG_PATH", default="")
-)
+DEFAULT_CONNECTION_CONFIG_PATH = Path(os.environ.get("DB_CONNECTION_CONFIG_PATH", default=""))
 
 
 def load_connection_config(path: Path | None = None) -> dict[str, Any]:
@@ -36,7 +34,7 @@ def load_connection_config(path: Path | None = None) -> dict[str, Any]:
             "Create it with keys: driver, server, database, trusted_connection "
             "(and username/password if not using a trusted connection)."
         )
-    return json.loads(config_path.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], json.loads(config_path.read_text(encoding="utf-8")))
 
 
 def build_connection_url(config: dict[str, Any]) -> str:
