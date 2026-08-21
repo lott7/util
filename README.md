@@ -48,7 +48,7 @@ df = pd.DataFrame(
 table.upsert(df)
 ```
 
-`UsEquitiesIngestStatusTable` follows the same pattern for keeping track of the pulled `start_date` and `end_date` range per `(symbol, exchange)`.
+`UsEquitiesIngestStatusTable` follows the same pattern for keeping track of the pulled `start_date` and `end_date` range per `(symbol, exchange)`, plus a `delisted` flag that becomes `True` once a symbol has been confirmed inactive and pulled one final time.
 
 ## Connection config
 

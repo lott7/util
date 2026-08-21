@@ -12,8 +12,11 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.schema import CreateTable, DropTable
 
+from ..logging_config import get_logger
 from .schema import AUDIT_COLUMNS, add_audit_columns
 from .validation import ValidationError, validate_rows
+
+logger = get_logger()
 
 
 class TableType1:
@@ -88,6 +91,7 @@ class TableType1:
         # Normalize so every row has the same keys (required for a single
         # batched executemany insert into the staging table).
         normalized_rows = [{c.name: row.get(c.name) for c in business_columns} for row in rows_list]
+        row_preview = pd.DataFrame(normalized_rows).head(3).to_dict(orient="records")
 
         temp_table_name = f"#upsert_{self.table.name}"
         temp_table = Table(
@@ -116,6 +120,14 @@ class TableType1:
                 conn.execute(DropTable(temp_table, if_exists=True))
         except SQLAlchemyError as exc:
             raise RuntimeError(f"Upsert failed for table {self.table.name!r}: {exc}") from exc
+        except Exception as exc:
+            raise RuntimeError(
+                f"Unexpected upsert failure for table {self.table.name!r}. "
+                f"Business columns: {[c.name for c in business_columns]}. "
+                f"Row preview: {row_preview}. Original error: {exc}"
+            ) from exc
+
+        logger.info("Upserted %d row(s) into %s", len(rows_list), self._qualified_name())
 
     def _qualified_name(self) -> str:
         if self.table.schema:

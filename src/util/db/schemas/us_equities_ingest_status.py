@@ -8,6 +8,7 @@ us_equities_ingest_status_schema = pa.DataFrameSchema(
         "exchange": pa.Column(str, nullable=False, coerce=True),
         "start_date": pa.Column("datetime64[ns]", nullable=False, coerce=True),
         "end_date": pa.Column("datetime64[ns]", nullable=False, coerce=True),
+        "delisted": pa.Column(bool, nullable=True, coerce=True),
     },
     strict=True,
     coerce=True,

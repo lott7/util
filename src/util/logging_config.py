@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 import logging.config
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+REPO_ROOT = Path(__file__).parents[2].resolve()
 DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_LOG_DIR = Path("logs")
@@ -82,3 +83,14 @@ def configure_logging(
     config = build_logging_config(app_name, log_dir, level, max_bytes, backup_count)
     logging.config.dictConfig(config)
     return logging.getLogger(app_name)
+
+
+def get_logger(level: str = "INFO") -> logging.Logger:
+    """Configure and return the util logger.
+
+    Logs to <repo_root>/logs/util.log (rotating) plus the console.
+    """
+    return cast(
+        logging.Logger,
+        configure_logging("util", log_dir=REPO_ROOT / "logs", level=level),
+    )
