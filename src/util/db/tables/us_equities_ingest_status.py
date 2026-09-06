@@ -19,9 +19,9 @@ class UsEquitiesIngestStatusTable(BaseTable):
 
     def _business_columns(self) -> list[Column]:
         return [
-            Column("symbol", String(32), primary_key=True),
-            Column("exchange", String(32), primary_key=True),
+            Column("symbol", String(32), nullable=False, primary_key=True),
+            Column("exchange", String(32), nullable=False, primary_key=True),
             Column("start_date", Date, nullable=False),
             Column("end_date", Date, nullable=False),
-            Column("delisted", Boolean, nullable=True),
+            Column("delisted", Boolean, nullable=False),
         ]

@@ -8,14 +8,15 @@ import pandera.pandas as pa
 # True means inactive/delisted.
 us_tickers_schema = pa.DataFrameSchema(
     {
-        "symbol": pa.Column(str, nullable=False, coerce=True),
-        "exchange": pa.Column(str, nullable=False, coerce=True),
-        "name": pa.Column(str, nullable=False, coerce=True),
-        "country": pa.Column(str, nullable=False, coerce=True),
-        "currency": pa.Column(str, nullable=False, coerce=True),
-        "type": pa.Column(str, nullable=False, coerce=True),
+        "symbol": pa.Column(str, coerce=True),
+        "exchange": pa.Column(str, coerce=True),
+        "name": pa.Column(str, coerce=True),
+        "country": pa.Column(str, coerce=True),
+        "currency": pa.Column(str, coerce=True),
+        "type": pa.Column(str, coerce=True),
         "isin": pa.Column(str, nullable=True, coerce=True),
-        "delisted": pa.Column(bool, nullable=True, coerce=True),
+        "delisted": pa.Column(bool, coerce=True),
+        "archived": pa.Column(bool, coerce=True),
     },
     strict=True,
     coerce=True,

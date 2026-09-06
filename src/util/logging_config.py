@@ -5,10 +5,10 @@ import logging.config
 from pathlib import Path
 from typing import Any, cast
 
-REPO_ROOT = Path(__file__).parents[2].resolve()
+EXTERNAL_LOG_ROOT = Path(r"C:\logs")
+DEFAULT_LOG_DIR = EXTERNAL_LOG_ROOT
 DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-DEFAULT_LOG_DIR = Path("logs")
 
 
 def build_logging_config(
@@ -23,7 +23,7 @@ def build_logging_config(
     Each repo should pass its own `app_name` (e.g. "etf_rep_strat") so it
     gets its own rotating log file (`<log_dir>/<app_name>.log`), isolated
     from other repos' logging. `log_dir` is typically an absolute path
-    inside the calling repo (e.g. `<repo_root>/logs`) so log files land
+    inside the calling repo (e.g. `<external_log_root>`) so log files land
     next to that repo's code rather than wherever the process happened
     to be launched from.
     """
@@ -77,7 +77,7 @@ def configure_logging(
 
     Example (called once from a repo's own config module):
 
-        logger = configure_logging("etf_rep_strat", log_dir=REPO_ROOT / "logs")
+        logger = configure_logging("etf_rep_strat", log_dir=EXTERNAL_LOG_ROOT)
         logger.info("started")
     """
     config = build_logging_config(app_name, log_dir, level, max_bytes, backup_count)
@@ -86,11 +86,11 @@ def configure_logging(
 
 
 def get_logger(level: str = "INFO") -> logging.Logger:
-    """Configure and return the util logger.
+    r"""Configure and return the util logger.
 
-    Logs to <repo_root>/logs/util.log (rotating) plus the console.
+    Logs to <external_log_root>\util\util.log (rotating) plus the console.
     """
     return cast(
         logging.Logger,
-        configure_logging("util", log_dir=REPO_ROOT / "logs", level=level),
+        configure_logging("util", log_dir=EXTERNAL_LOG_ROOT / "util", level=level),
     )

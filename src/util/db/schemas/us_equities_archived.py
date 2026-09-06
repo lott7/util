@@ -4,10 +4,10 @@ import pandera.pandas as pa
 
 # Explicit validation schema for the us_equities table's business columns
 # (no audit_* columns — those are system-managed and never caller-supplied).
-# Passed to UsEquitiesTable as `validation_schema`; if a table doesn't
+# Passed to UsEquitiesArchivedTable as `validation_schema`; if a table doesn't
 # define one, validation.py falls back to auto-deriving a schema from the
 # SQLAlchemy Table's columns instead.
-us_equities_schema = pa.DataFrameSchema(
+us_equities_archived_schema = pa.DataFrameSchema(
     {
         "symbol": pa.Column(str, coerce=True),
         "exchange": pa.Column(str, coerce=True),

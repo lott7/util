@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import cast
+from typing import Any, cast
 
 import pandas as pd
 import pandera.pandas as pa
 from sqlalchemy import Column, Float, MetaData, Numeric, String, Table
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Connection, Engine
 
 from .table import TableType1
 
@@ -143,9 +143,28 @@ class BaseTable:
                 ).round(precision)
         return prepared_df
 
-    def upsert(self, df: pd.DataFrame) -> None:
+    def upsert(self, df: pd.DataFrame, connection: Connection | None = None) -> None:
         df = self.prepare_df(df)
-        self._engine.upsert(df)
+        self._engine.upsert(df, connection=connection)
 
     def read(self, limit: int | None = None) -> pd.DataFrame:
         return cast(pd.DataFrame, self._engine.read(limit))
+
+    def read_date_range(
+        self,
+        date_column: str,
+        start_date: Any | None = None,
+        end_date: Any | None = None,
+        filters: dict[str, Any] | None = None,
+        limit: int | None = None,
+    ) -> pd.DataFrame:
+        return cast(
+            pd.DataFrame,
+            self._engine.read_date_range(
+                date_column,
+                start_date=start_date,
+                end_date=end_date,
+                filters=filters,
+                limit=limit,
+            ),
+        )

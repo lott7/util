@@ -18,7 +18,7 @@ Audit columns: `audit_created_at`/`audit_created_by` are set once at insert time
 
 `BaseTable.prepare_df()` applies default normalization before validation and upsert: string primary keys are stripped and uppercased, numeric columns are rounded to the configured precision, and date/time columns are coerced through pandas.
 
-`TableType1.read()` returns a `pandas.DataFrame`. `TableType1.upsert()` accepts a `DataFrame` and batches the staging-table insert using `chunksize` when provided, otherwise it derives a safe default from the number of business columns.
+`TableType1.read()` returns a `pandas.DataFrame`. `TableType1.upsert()` accepts a `DataFrame` and batches the staging-table insert using `chunksize` when provided, otherwise it derives a safe default from the number of business columns. Pass `connection=` when multiple upserts need to share one caller-managed transaction.
 
 ## Example
 
@@ -35,7 +35,7 @@ df = pd.DataFrame(
     [
         {
             "symbol": "AAPL",
-            "trade_date": "2026-07-15",
+            "date": "2026-07-15",
             "open": 193.50,
             "high": 196.00,
             "low": 193.10,

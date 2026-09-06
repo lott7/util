@@ -14,7 +14,7 @@ def main() -> None:
         [
             {
                 "symbol": "AAPL",
-                "trade_date": "2026-07-15",
+                "date": "2026-07-15",
                 "open": 193.50,
                 "high": 196.00,
                 "low": 193.10,
